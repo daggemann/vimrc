@@ -72,7 +72,6 @@ Plug 'easymotion/vim-easymotion'
 " Git
 Plug 'tpope/vim-fugitive'
 Plug 'airblade/vim-gitgutter'
-Plug 'tpope/vim-rhubarb'
 
 " PL/B
 Plug 'daggemann/vim-plb'
@@ -80,17 +79,8 @@ Plug 'daggemann/vim-plb'
 " Golang
 Plug 'fatih/vim-go'
 
-" Denite
-Plug 'shougo/denite.nvim'
-
 " Vim ack
 Plug 'mileszs/ack.vim'
-
-" Autoformat
-Plug 'Chiel92/vim-autoformat'
-
-" Jedi
-Plug 'davidhalter/jedi-vim'
 
 call plug#end()
 
@@ -139,6 +129,7 @@ map <space> <Plug>(incsearch-easymotion-/)
 map <c-@> <Plug>(incsearch-easymotion-?)
 
 " }
+
 " lightline {
 let g:lightline = {
       \ 'colorscheme': 'solarized',
@@ -150,6 +141,21 @@ let g:lightline = {
       \   'gitbranch': 'fugitive#head'
       \ },
       \ }
+" }
+
+" vim-go {
+let g:go_list_type = "quickfix"
+let g:go_fmt_command = "goimports"
+let g:go_highlight_types = 1
+let g:go_highlight_fields = 1
+let g:go_highlight_functions = 1
+let g:go_highlight_methods = 1
+let g:go_highlight_operators = 1
+let g:go_highlight_extra_types = 1
+let g:go_highlight_build_constraints = 1
+let g:go_metalinter_enabled = ['vet', 'golint', 'errcheck']
+let g:go_metalinter_autosave_enabled = ['vet', 'golint']
+let g:go_metalinter_autosave = 1
 " }
 
 " }
@@ -327,6 +333,11 @@ set stal=1
 " Return to last edit position when opening files (You want this!)
 au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
 
+" Quickfix
+nnoremap <C-n> :cnext<CR>
+nnoremap <C-m> :cprevious<CR>
+nnoremap <leader>a :cclose<CR>
+
 " }
 
 " Editing { 
@@ -352,20 +363,26 @@ augroup filetype_plb
 augroup END
 " }
 
-" Python {
-augroup filetype_python
-    autocmd!
-    autocmd filetype python nnoremap <F3> :Autoformat<CR>
-    au BufNewFile,BufRead *.py |
-        \ set tabstop=4 |
-        \ set softtabstop=4 |
-        \ set shiftwidth=4 |
-        \ set textwidth=79 |
-        \ set expandtab |
-        \ set autoindent |
-        \ set fileformat=unix |
-augroup END
+" Golang {
+autocmd FileType go nmap <leader>t  <Plug>(go-test)
+autocmd FileType go nmap <leader>r  <Plug>(go-run)
+autocmd FileType go nmap <Leader>c <Plug>(go-coverage-toggle)
+autocmd FileType go nmap <leader>b :<C-u>call <SID>build_go_files()<CR>
+
+autocmd BufNewFile,BufRead *.go setlocal noexpandtab tabstop=4 shiftwidth=4 
+
+" run :GoBuild or :GoTestCompile based on the go file
+function! s:build_go_files()
+  let l:file = expand('%')
+  if l:file =~# '^\f\+_test\.go$'
+    call go#test#Test(0, 1)
+  elseif l:file =~# '^\f\+\.go$'
+    call go#cmd#Build(0)
+  endif
+endfunction
+
 " }
+
 " }
 
 " Backup {
